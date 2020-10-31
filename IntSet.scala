@@ -1,18 +1,22 @@
-// A class of objects to represent a set
+// A class of objects to represent a set of integers using a linked list.
 
-// Answers to questions:
+// Details of the implementation:
 // - I use a dummy header node in order to remove particular cases from
 //   operations such as find and remove.
-// - I avoid repetitions because that would complicate operations like size,
-//   remove, equals, union or intersect.
-// - Yes, I store the elements in increasing order in order to be able to print
+// - I do not store an element several times, because that would complicate 
+//   operations like size, remove, equals, union or intersect.
+// - I store the elements in increasing order so that I am able to print
 //   the set like that and to make find faster.
 // - I include a variable "card", the cardinal of the set, in order to make
 // - the size function O(1)
 
+// Terminology: "DTI" means datatype invariant and "Abs" stands for the
+// abstraction function.
+
 import org.scalatest.FunSuite
 
-class TestTest extends FunSuite{
+// Some unit tests.
+class TestSet extends FunSuite{
   val set = IntSet(1,2,3,4)
   val empty = IntSet()
   // small set operations
@@ -67,8 +71,7 @@ class IntSet{
   private var theSet : Node = Node(-1,null) // dummy header
   private var card = 0
 
-  /** Convert the set to a string. */  val set = IntSet(1,2,3,4)
-  val empty = IntSet()
+  /** Convert the set to a string. */
   override def toString : String = {
     if (size == 0) return "{}"
     if (size == 1) return "{" + theSet.next.datum + "}"
@@ -125,11 +128,20 @@ class IntSet{
   /** Does this equal that?
     * Post: S = S_0 && returns that.S = S */
   override def equals(that: Any) : Boolean = that match {
-    // room for time improvement; simply check if sizes are equal
+    // Simply check if sizes are equal
     // and if they are, compare each parallel element
-    case s: IntSet => subsetOf(s) && s.subsetOf(this)
+    case s: IntSet => {
+      if (s.size != this.size) return false
+      var setThis = theSet.next
+      var setThat = s.theSet.next
+      while (setThis != null && setThis.datum == setThat.datum) {
+        setThis = setThis.next;
+        setThat = setThat.next;
+      }
+      return setThis == null
+    }
     case _ => false
-  } // O(min{card, that.card})
+  } // O(card)
 
   /** Remove e from the set; result says whether e was in the set initially
     * Post S = S_0 - {e} && returns (e in S_0) */
@@ -176,8 +188,6 @@ class IntSet{
   /** return union of this and that.
     * Post: S = S_0 && returns res s.t. res.S = this U that.S */
   def union(that: IntSet) : IntSet = {
-    // 2,3,4,5
-    // 1,6,7
     val u = IntSet()
     var setThis = theSet.next; var setThat = that.theSet.next
     while (setThis != null && setThat != null){
